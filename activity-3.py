@@ -36,7 +36,17 @@ def main():
 
     #Step 6
     npRadialPositions = findNpRadialPositions(windowDetectionsDf)
-    print(npRadialPositions)
+    hist1Nps = list(hist1NpSums.keys())
+    hist1NpRadialPositions = list(map(lambda x: npRadialPositions[x], hist1Nps))
+    radialPositionCounts = list(map(lambda x: hist1NpRadialPositions.count(x), [1,2,3,4,5]))
+    radialPositionMode = radialPositionCounts.index(max(radialPositionCounts))+1
+    
+    #step 7
+    windowCompactions = findWindowCompactions(windowDetectionsDf)
+    hist1WindowCompactions = list(map(lambda x: windowCompactions[x], hist1Windows))
+    windowCompactionCounts = list(map(lambda x: hist1WindowCompactions.count(x), [1,2,3,4,5,6,7,8,9,10]))
+    
+
 
 
 #returns a list of numbers of chr13 windows that are between 21.7 and 24.1 Mb
@@ -68,6 +78,12 @@ def findNpRadialPositions(windowDetectionsDf):
     for index,key in enumerate(npSumsSorted.keys()):
         npSumsSorted[key] = math.floor(index / (len(npSumsSorted)/5)) + 1
     return npSumsSorted
+
+def findWindowCompactions(windowDetectionsDf):
+    windowSumsSorted = windowDetectionsDf.sum(axis=1).sort_values()
+    for index,key in enumerate(windowSumsSorted.keys()):
+        windowSumsSorted[key] = math.floor(index / (len(windowSumsSorted)/10)) + 1
+    return windowSumsSorted
 
 #TODO: radial positions of windows, compactions of windows (fix script)
 
