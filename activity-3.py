@@ -8,6 +8,10 @@ def main():
     dataFile = 'GSE64881_segmentation_at_30000bp.passqc.multibam.txt'
     df = pd.read_csv(dataFile,sep='\t')
 
+    #open output file
+    outputFile = open("activity-3-report.md", 'w')
+    outputFile.write("# Activity 3 Report\n")
+
     #columns denote an NP, rows denote a window
     windowDetectionsDf = df.iloc[:,3:]
 
@@ -45,8 +49,9 @@ def main():
     windowCompactions = findWindowCompactions(windowDetectionsDf)
     hist1WindowCompactions = list(map(lambda x: windowCompactions[x], hist1Windows))
     windowCompactionCounts = list(map(lambda x: hist1WindowCompactions.count(x), [1,2,3,4,5,6,7,8,9,10]))
-    
 
+    outputFile.close()
+    return 
 
 
 #returns a list of numbers of chr13 windows that are between 21.7 and 24.1 Mb
@@ -79,13 +84,14 @@ def findNpRadialPositions(windowDetectionsDf):
         npSumsSorted[key] = math.floor(index / (len(npSumsSorted)/5)) + 1
     return npSumsSorted
 
+#for each window, rate its compaction between 1 (most condensed) and 10 (least condensed)
 def findWindowCompactions(windowDetectionsDf):
+    #sorts into ten equal groups -- wrong way?
     windowSumsSorted = windowDetectionsDf.sum(axis=1).sort_values()
     for index,key in enumerate(windowSumsSorted.keys()):
         windowSumsSorted[key] = math.floor(index / (len(windowSumsSorted)/10)) + 1
     return windowSumsSorted
 
-#TODO: radial positions of windows, compactions of windows (fix script)
 
 if __name__ == "__main__":
     main()
