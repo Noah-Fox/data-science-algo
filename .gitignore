@@ -1,2 +1,4 @@
 GSE64881_segmentation_at_30000bp.passqc.multibam.txt
 test_data.txt
+reports/
+charts/
