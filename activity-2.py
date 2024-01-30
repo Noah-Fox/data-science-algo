@@ -19,6 +19,7 @@ column_sums = column_sums.sort_values()
 np_radial_positions = pd.Series()
 for index,key in enumerate(column_sums.keys()):
     np_radial_positions[key] = math.floor(index / (len(column_sums)/5)) + 1
+print(np_radial_positions)
 
 
 #Part 2: Estimate the compaction of each window (most condensed=1 - least condensed=10)

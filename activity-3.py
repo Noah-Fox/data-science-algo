@@ -9,7 +9,7 @@ def main():
     df = pd.read_csv(dataFile,sep='\t')
 
     #open output file
-    outputFile = open("activity-3-report.md", 'w')
+    outputFile = open("reports/activity-3-report.md", 'w')
     outputFile.write("# Activity 3 Report\n")
     outputFile.write("The Hist1 region is present on mouse chromosome 13 between 21.7 and 24.1 Mb\n")
 
@@ -59,7 +59,7 @@ def main():
     radialPositionCounts = list(map(lambda x: hist1NpRadialPositions.count(x), [1,2,3,4,5]))
     radialPositionMode = radialPositionCounts.index(max(radialPositionCounts))+1
     outputFile.write("### 6. Radial positions of Hist1 Genes\n")
-    outputFile.write("![Radial Position Bar Graph](./activity-3-radial-positions.png)\n\n")
+    outputFile.write("![Radial Position Bar Graph](../charts/activity-3-radial-positions.png)\n\n")
     outputFile.write("The most commonly occurring radial position of a Hist1 window is " + str(radialPositionMode) + "\n")
 
     plt.figure()
@@ -73,7 +73,7 @@ def main():
     hist1WindowCompactions = list(map(lambda x: windowCompactions[x], hist1Windows))
     windowCompactionCounts = list(map(lambda x: hist1WindowCompactions.count(x), [1,2,3,4,5,6,7,8,9,10]))
     outputFile.write("### 7. Compactions of Hist1 Windows\n")
-    outputFile.write("![Window compaction Bar Graph](./activity-3-window-compactions.png)\n\n")
+    outputFile.write("![Window compaction Bar Graph](../charts/activity-3-window-compactions.png)\n\n")
     outputFile.write(".\n")
 
     plt.figure()
