@@ -42,6 +42,7 @@ def main():
 def jaccard(npA, npB, hist1WindowDetectionsDf):
     A = (hist1WindowDetectionsDf[npA] == 1)
     B = (hist1WindowDetectionsDf[npB] == 1)
+    if (A & B).sum() == 0: return 0
     return  (A & B).sum() / (A | B).sum()
 
 if __name__ == "__main__":
