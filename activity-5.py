@@ -47,7 +47,7 @@ def main():
 
     #make a heat map for the amount of detections by each NP
     detectionAmountData = [[hist1WindowDetectionsDf[a].sum() for a in hist1NPs] for b in hist1NPs]
-    npDetectionAmount = pd.DataFrame(data=detectionAmountData, index=hist1NPs, columns=hist1NPs)
+    npDetectionAmount = pd.DataFrame(data=detectionAmountData, index=['' for x in hist1NPs], columns=hist1NPs)
     plt.figure()
     sns.heatmap(npDetectionAmount,cmap='Blues')
     plt.title('NP Detection Amounts')
@@ -57,6 +57,7 @@ def main():
                         As can be seen in the NP Detection Amounts chart, these patterns correlate directly to the amount of 
                         windows detected by the NP\n\n''')
     
+    #clarify the jaccard index heat map by dividing each value by the detection count
     simValData = [[jaccard(a,b,hist1WindowDetectionsDf)/hist1WindowDetectionsDf[a].sum() for a in hist1NPs] for b in hist1NPs]
     simValMatrix = pd.DataFrame(data=simValData,index=hist1NPs,columns=hist1NPs)
     plt.figure()
