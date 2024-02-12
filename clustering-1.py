@@ -26,7 +26,7 @@ def main():
     hist1Windows = h1_mod.findHist1Windows(windowValuesDf)
     hist1WindowDetectionsDf = windowDetectionsDf.iloc[hist1Windows,:]
     hist1NpSums = h1_mod.windowsPerNP(hist1WindowDetectionsDf)
-    hist1NPs = [x for x in hist1NpSums.index]
+    hist1NPs = list(hist1NpSums.index)
 
     #construct a matrix of Jaccard Indices for each pair of NPs
     jaccardData = [[normalizedJaccard(a,b,hist1WindowDetectionsDf) for a in hist1NPs] for b in hist1NPs]
@@ -60,6 +60,7 @@ def main():
     
     clusteringScore = assessClusteringQuality(clusters,clusterMedoids,npJaccards)
 
+
     outputFile.write('Clusters were found after ' + str(iterations) + ' iterations\n\n')
     outputFile.write('Clusters have a sum distance of ' + str(clusteringScore) + '\n\n')
 
@@ -92,9 +93,15 @@ def main():
 def assessClusteringQuality(clusters, medoids, npJaccards):
     return sum([sum([(1-npJaccards[np][med]) for np in c]) for (c, med) in zip(clusters,medoids)])
 
-#Assign each element of hist1NPs to a cluster with an element of clusterNPs at its center
-def assignKMeansCluster(hist1NPs, clusterNPs, npJaccards, preferences):
-    return [[assignCluster(clusterNPs,n,npJaccards,pref),n] for (n,pref) in zip(hist1NPs,preferences)]
+#Assign each element of hist1NPs to a cluster with an element of clusterMedoids at its center
+#Each element of the returned list denotes an NP, containing [cluster, np]
+def assignKMeansCluster(hist1NPs, clusterMedoids, npJaccards, preferences):
+    return [[assignCluster(clusterMedoids,n,npJaccards,pref),n] for (n,pref) in zip(hist1NPs,preferences)]
+
+#Given an NP and the NPs at the center of each cluster, determine which cluster is closest
+def assignCluster(clusterMedoids, np, npJaccards, preference):
+    clusterSimilarities = [npJaccards[np][c] for c in clusterMedoids]
+    return randMax(clusterSimilarities,randOffset=preference)
 
 #Given the cluster assigned to each element, return k lists of NPs in each cluster
 def arrangeClusters(clusterAssignments, k):
@@ -104,11 +111,6 @@ def arrangeClusters(clusterAssignments, k):
 def findClusterMedoid(cluster, npJaccards):
     avgSimilarities = [sum([(npJaccards[n][cn]) for cn in cluster])/len(cluster) for n in cluster]
     return cluster[randMax(avgSimilarities)]
-
-#Given an NP and the NPs at the center of each cluster, determine which cluster is closest
-def assignCluster(clusterNPs, np, npJaccards, preference):
-    clusterSimilarities = [npJaccards[np][c] for c in clusterNPs]
-    return randMax(clusterSimilarities,randOffset=preference)
 
 #Given a list of numbers, return the index of the maximum number
 #If there are multiple maximums, choose one randomly
