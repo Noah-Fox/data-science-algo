@@ -38,7 +38,8 @@ def main():
             for z in range(y+1,len(hist1NPs)):
                 npCombos.append([hist1NPs[x],hist1NPs[y],hist1NPs[z]])
     
-    selectCombos = random.sample(npCombos,100)
+    clusteringAmount = 100
+    selectCombos = random.sample(npCombos,clusteringAmount)
     clusteringScores = []
     maxScore = 0
     optimalClustering = []
@@ -60,22 +61,18 @@ def main():
     plt.savefig(saveToFile)
     outputFile.write('![Intra-cluster similarity averages](../' + saveToFile + ')\n\n')
 
+    outputFile.write(str(clusteringAmount) + ' iterations of k-medoids clustering performed\n\n')
     outputFile.write('Maximum similarity average found: ' + str(maxScore) + '\n\n')
 
 
     for i in range(0,3):
         plt.figure()
-        sns.heatmap(hist1WindowDetectionsDf.loc[:,clusters[i]],cmap='Blues')
+        sns.heatmap(hist1WindowDetectionsDf.loc[:,optimalClustering[i]],cmap='Blues')
         plt.title('Cluster ' + str(i))
         saveToFile = 'charts/feature-selection/cluster-' + str(i) + '-heatmap.png'
         plt.savefig(saveToFile)
         outputFile.write('![Cluster ' + str(i) + '](../' + saveToFile + ')\n\n')
 
-
-    # for i in range(0,100):
-    #     clusters,clusterMedoids = runKMedoidsClustering(['F10B5', 'F11B1', 'F3F1'],hist1NPs,npJaccards)
-    #     print([len(x) for x in clusters])
-    #     print(clusterMedoids,'\n')
 
 
     return 
