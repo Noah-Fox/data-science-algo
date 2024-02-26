@@ -17,7 +17,7 @@ def findHist1Windows(windowValuesDf):
         windowStart = windowValuesDf['start'][index]
         windowEnd = windowValuesDf['stop'][index]
         windowChrom = windowValuesDf['chrom'][index]
-        if (windowStart >= startRange and windowEnd <= endRange and windowChrom == chromType):
+        if (windowEnd > startRange and windowStart < endRange and windowChrom == chromType):
             hist1Windows.append(index)
     return hist1Windows
 
@@ -82,3 +82,24 @@ def normalizedJaccard(npA, npB, hist1WindowDetectionsDf):
     B = (hist1WindowDetectionsDf[npB] == 1)
     if (A | B).sum() == 0: return 0
     return (A & B).sum() / min(A.sum(), B.sum())
+
+#performs K-Medoids clustering on values in hist1NPs, with similarities denoted in npJaccards, starting with clusterMedoids medoids
+#returns clusters and clusterMedoids
+def runKMedoidsClustering(clusterMedoids, hist1NPs, npJaccards):
+    clusterPreferences = [random.randint(0,3) for x in hist1NPs]
+        #An arbitrary preference of which cluster to be assigned to in case of a tie
+    clusterAssignments = h1_mod.assignKMeansCluster(hist1NPs, clusterMedoids, npJaccards, clusterPreferences)
+    clusters = h1_mod.arrangeClusters(clusterAssignments, 3)
+    running = True
+    iterations = 1
+    while (running):
+        clusterMedoids = [h1_mod.findClusterMedoid(c,npJaccards) for c in clusters]
+        nextAssignments = h1_mod.assignKMeansCluster(hist1NPs, clusterMedoids, npJaccards, clusterPreferences)
+        nextClusters = h1_mod.arrangeClusters(clusterAssignments,3)
+        if (nextAssignments == clusterAssignments):
+            running = False
+        clusterAssignments = nextAssignments
+        clusters = nextClusters
+        iterations += 1
+
+    return clusters, clusterMedoids
