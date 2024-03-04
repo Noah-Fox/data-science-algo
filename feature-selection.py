@@ -38,11 +38,22 @@ def main():
             for z in range(y+1,len(hist1NPs)):
                 npCombos.append([hist1NPs[x],hist1NPs[y],hist1NPs[z]])
     
-    clusteringAmount = 10000
+    clusteringAmount = 100
     selectCombos = random.sample(npCombos,clusteringAmount)
     clusteringScores = []
-    maxScore = 0
-    optimalClustering = []
+
+    maxScore = {'similarityAvg': 0}
+    optimalSimClustering = []
+    optimalSimMedoids = []
+
+    optimalDistClustering = []
+    optimalDistMedoids = []
+    maxDist = {'interClusterDistanceAvg': 0}
+
+    balanceScore = {}
+    minBalanceDist = 2
+    optimalBalanceClustering = []
+    optimalBalanceMedoids = []
 
     for i in selectCombos:
         print(i,end=' ')
@@ -50,25 +61,56 @@ def main():
         clusteringScore = assignClusteringScores(clusters,clusterMedoids,npJaccards)
         clusteringScores.append(clusteringScore)
         print(clusteringScore['similarityAvg'],len(clusteringScores))
-        if clusteringScore['similarityAvg'] > maxScore:
-            maxScore = clusteringScore['similarityAvg']
-            optimalClustering = clusters
+        if clusteringScore['similarityAvg'] > maxScore['similarityAvg']:
+            maxScore = clusteringScore
+            optimalSimClustering = clusters
+            optimalSimMedoids = clusterMedoids
+        if clusteringScore['interClusterDistanceAvg'] > maxDist['interClusterDistanceAvg']:
+            maxDist = clusteringScore
+            optimalDistClustering = clusters
+            optimalDistMedoids = clusterMedoids
+        balanceDist = math.sqrt(math.pow(1-clusteringScore['similarityAvg'],2) + math.pow(1-clusteringScore['interClusterDistanceAvg'],2))
+        if balanceDist < minBalanceDist:
+            minBalanceDist = balanceDist
+            balanceScore = clusteringScore
+            optimalBalanceClustering = clusters
+            optimalBalanceMedoids = clusterMedoids
     
     plt.figure()
-    plt.title('Intra-cluster similarity averages')
-    plt.scatter(range(0,len(selectCombos)),list(map(lambda x: x['similarityAvg'], clusteringScores)))
+    plt.title('Cluster scores')
+    plt.xlabel('Inter-cluster distance averages')
+    plt.ylabel('Intra-cluster similarity averages')
+    plt.scatter(list(map(lambda x: x['interClusterDistanceAvg'], clusteringScores)),list(map(lambda x: x['similarityAvg'], clusteringScores)))
+    # plt.scatter(range(0,len(selectCombos)),list(map(lambda x: x['similarityAvg'], clusteringScores)))
     saveToFile = 'charts/feature-selection/similarity-averages.png'
     plt.savefig(saveToFile)
     outputFile.write('![Intra-cluster similarity averages](../' + saveToFile + ')\n\n')
 
     outputFile.write(str(clusteringAmount) + ' iterations of k-medoids clustering performed\n\n')
-    outputFile.write('Maximum similarity average found: ' + str(maxScore) + '\n\n')
-    outputFile.write('Final Medoids: ' + str(clusterMedoids) + '\n\n')
 
+    outputFile.write('### Clustering with highest average distance of each NP to every other medoid\n\n')
+    outputFile.write('Maximum average distance found: ' + str(maxDist['interClusterDistanceAvg']) + '\n\n')
+    outputFile.write('Maximum similarity average found: ' + str(maxDist['similarityAvg']) + '\n\n')
+    outputFile.write('Final Medoids: ' + str(optimalDistMedoids) + '\n\n')
+    outputFile.write('Size of each cluster: ' + str([len(c) for c in optimalDistClustering]) + '\n\n')
 
+    outputFile.write('### Clustering with highest average similarity of each NP to its medoid\n\n')
+    outputFile.write('Maximum similarity average found: ' + str(maxScore['similarityAvg']) + '\n\n')
+    outputFile.write('Maximum average distance found: ' + str(maxScore['interClusterDistanceAvg']) + '\n\n')
+    outputFile.write('Final Medoids: ' + str(optimalSimMedoids) + '\n\n')
+    outputFile.write('Size of each cluster: ' + str([len(c) for c in optimalSimClustering]) + '\n\n')
+
+    outputFile.write('### Clustering with best balance between intra-cluster similarity and inter-cluster distance\n\n')
+    outputFile.write('Found by taking the clustering with the minimum distance between (intra-cluster similarity,inter-cluster distance) and (1,1)\n\n')
+    outputFile.write('Maximum similarity average found: ' + str(balanceScore['similarityAvg']) + '\n\n')
+    outputFile.write('Maximum average distance found: ' + str(balanceScore['interClusterDistanceAvg']) + '\n\n')
+    outputFile.write('Final Medoids: ' + str(optimalBalanceMedoids) + '\n\n')
+    outputFile.write('Size of each cluster: ' + str([len(c) for c in optimalBalanceClustering]) + '\n\n')
+
+    outputFile.write('## Cluster heat maps for optimized intra-cluster similarity\n\n')
     for i in range(0,3):
         plt.figure()
-        sns.heatmap(hist1WindowDetectionsDf.loc[:,optimalClustering[i]],cmap='Blues')
+        sns.heatmap(hist1WindowDetectionsDf.loc[:,optimalSimClustering[i]],cmap='Blues')
         plt.title('Cluster ' + str(i))
         saveToFile = 'charts/feature-selection/cluster-' + str(i) + '-heatmap.png'
         plt.savefig(saveToFile)
@@ -85,7 +127,8 @@ def assignClusteringScores(clusters,clusterMedoids,npJaccards):
         'similaritySum': sum([sum([npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)]),
         'similarityAvg': sum([sum([npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)])/npAmount,
         'distanceSum': sum([sum([1-npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)]),
-        'distanceAvg': sum([sum([1-npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)])/npAmount
+        'distanceAvg': sum([sum([1-npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)])/npAmount,
+        'interClusterDistanceAvg': sum([sum([sum([(1-npJaccards[np][clusterMedoids[(i+x)%3]]) for x in [1,2]]) for np in c]) for i,c in enumerate(clusters)])/(2*npAmount)
     }
     return scores
 

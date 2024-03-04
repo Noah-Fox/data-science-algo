@@ -48,6 +48,16 @@ def findWindowCompactions(windowDetectionsDf):
 def assessClusteringQuality(clusters, medoids, npJaccards):
     return sum([sum([(1-npJaccards[np][med]) for np in c]) for (c, med) in zip(clusters,medoids)])
 
+def assignClusteringScores(clusters,clusterMedoids,npJaccards):
+    npAmount = sum([len(c) for c in clusters])
+    scores = {
+        'similaritySum': sum([sum([npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)]),
+        'similarityAvg': sum([sum([npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)])/npAmount,
+        'distanceSum': sum([sum([1-npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)]),
+        'distanceAvg': sum([sum([1-npJaccards[np][med] for np in c]) for c,med in zip(clusters,clusterMedoids)])/npAmount
+    }
+    return scores
+
 #Assign each element of hist1NPs to a cluster with an element of clusterMedoids at its center
 #Each element of the returned list denotes an NP, containing [cluster, np]
 def assignKMeansCluster(hist1NPs, clusterMedoids, npJaccards, preferences):
