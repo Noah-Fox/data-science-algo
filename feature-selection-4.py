@@ -36,6 +36,9 @@ def main():
     #change indices of featureDf to be the same as windowValuesDf
     featureDf = featureDf.set_index(hist1WindowValuesDf.index)
 
+    #Find radial positions of all NPs
+    npRadialPositions = h1_mod.findNpRadialPositions(windowDetectionsDf)
+
     #construct a matrix of Jaccard Indices for each pair of NPs
     jaccardData = [[h1_mod.normalizedJaccard(a,b,hist1WindowDetectionsDf) for a in hist1NPs] for b in hist1NPs]
     npJaccards = pd.DataFrame(data=jaccardData, index=hist1NPs, columns=hist1NPs)
@@ -88,13 +91,27 @@ def main():
         #output to file
         fig.write_image(file='charts/feature-selection-4/' + title + '-radar.png',format='png')
         fig.write_html(file='charts/feature-selection-4/' + title + '-radar.html')
-        if input('Open radar diagram (y/n)? ') == 'y':
-            fig.show()
         outputFile.write('## ' + desc + '\n\n')
         outputFile.write('![Radar graph](../charts/feature-selection-4/' + title + '-radar.png)\n\n')
         outputFile.write('Cluster medoids: ' + str(clusterMedoids) + '\n\n')
         outputFile.write('Average similarity of each NP to its medoid: ' + str(clusterScore) + '\n\n')
         outputFile.write('Size of each cluster: ' + str([len(c) for c in clusters]) + '\n\n')
+
+        #for each cluster, find the amount of NPs with each radial position
+        radialPositionCounts = [{1:0, 2:0, 3:0, 4:0, 5:0} for x in [0,1,2]]
+        for c, count in zip(clusters,radialPositionCounts):
+            for np in c:
+                count[npRadialPositions[np]] += 1
+
+        for i in [0,1,2]:
+            plt.figure()
+            plt.bar([1,2,3,4,5],list(radialPositionCounts[i].values()))
+            plt.title('Cluster ' + str(i) + ' NP radial positions')
+            plt.xlabel('Radial positions (Apical - Equitorial)')
+            plt.ylabel('NPs in each radial position')
+            saveFile = 'charts/feature-selection-4/' + title + '-cluster-' + str(i) + '-radial-counts.png'
+            plt.savefig(saveFile)
+            outputFile.write('![Cluster ' + str(i) + ' radial positions](../' + saveFile + ')\n\n')
 
 
     return 

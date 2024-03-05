@@ -42,7 +42,8 @@ def main():
     npJaccards = pd.DataFrame(data=jaccardData, index=hist1NPs, columns=hist1NPs)
 
     #run k-means clustering
-    medoids = ['F11C2', 'F6A4', 'F7F3']#found testing 10000 combinations
+    startingMedoids = [['F15B5', 'F15F3', 'F11D4'],['F6A4', 'F9A2', 'F7F3'],['F12B2', 'F7F3', 'F16F4']]#similarity,distance,balance
+    medoids = startingMedoids[0]
     clusters,clusterMedoids = h1_mod.runKMedoidsClustering(medoids,hist1NPs,npJaccards)
 
     #for each cluster, find the amount of NPs with each radial position
