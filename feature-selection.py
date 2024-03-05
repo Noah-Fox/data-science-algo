@@ -38,7 +38,7 @@ def main():
             for z in range(y+1,len(hist1NPs)):
                 npCombos.append([hist1NPs[x],hist1NPs[y],hist1NPs[z]])
     
-    clusteringAmount = 100
+    clusteringAmount = 10000
     selectCombos = random.sample(npCombos,clusteringAmount)
     clusteringScores = []
 
