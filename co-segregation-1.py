@@ -44,9 +44,10 @@ def main():
         for x in indices:
             linkageTable.loc[i,x] = normalizedLinkage(hist1WindowDetectionsDf.loc[i,:],hist1WindowDetectionsDf.loc[x,:])
 
+
     #create a heat map of the linkage table
     plt.figure()
-    sns.heatmap(linkageTable,cmap='Blues')
+    sns.heatmap(linkageTable,cmap='bwr')
     plt.title('Normalized Linkage Table')
     plt.savefig('charts/co-segregation-1/linkage-table.png')
     outputFile.write('![Linkage Table heat map](../charts/co-segregation-1/linkage-table.png)\n\n')
@@ -64,21 +65,43 @@ def main():
     outputFile.write('and when they have no NPs in common, it is -1.\n\n')
 
     #create a clarified heat map of the linkage table
-    clarLinkageTable = linkageTable 
+    clarLinkageTable = linkageTable.copy(deep=True)
     for i in indices:
         for x in indices:
             val = clarLinkageTable.loc[i,x]
-            if val < 0 and val != -1:
-                val = -0.5
-            elif val > 0 and val != 1:
-                val = 0.5
+            minErr = 0.000000001
+
+            if val > -1+minErr and val < -0.75:
+                val = -0.75 
+            elif val < -minErr and val > -0.25:
+                val = -0.25 
+            elif val > minErr and val < 0.25:
+                val = 0.25 
+            elif val > 0.75 and val < 1-minErr:
+                val = 0.75
+
             clarLinkageTable.loc[i,x] = val
+
     plt.figure()
-    sns.heatmap(clarLinkageTable,cmap='Blues')
+    sns.heatmap(clarLinkageTable,cmap='tab10')
     plt.title('Clarified Linkage Table')
     plt.savefig('charts/co-segregation-1/clarified-linkage-table.png')
     outputFile.write('![Linkage Table heat map](../charts/co-segregation-1/clarified-linkage-table.png)\n\n') 
-    outputFile.write('Linkage table with all non-integer values rounded to -0.5 and 0.5, to highlight outlying values of -1, 0, and 1\n\n')
+    outputFile.write('Linkage table with all non-integer values rounded away from -1, 0, and 1 to highlight outliers\n\n')
+    outputFile.write('Window 69758 is detected by no NPs, causing it to have normalized linkages of 0 for all windows\n\n')
+    outputFile.write('Window 69759 is only detected by 3 NPs, giving it a high chance of having all NPs match (linkage of 1) or no NPs match (linkage of -1)\n\n')
+
+    w = hist1WindowDetectionsDf.loc[69758,:]
+    # print(detectionFrequency(w))
+    # print(coSegregation(w,w))
+    # print(linkage(w,w))
+    # print(normalizedLinkage(w,w))
+    # for i in indices:
+    #     print(normalizedLinkage(w,hist1WindowDetectionsDf.loc[i,:]))
+    
+
+    #69758 is all -0.5
+    #69759 has -1s and 1s
 
     return 
 
