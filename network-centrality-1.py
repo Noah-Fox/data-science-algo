@@ -7,6 +7,7 @@ import seaborn as sns
 import random
 import plotly.express as px
 import plotly.graph_objects as go
+import networkx as nx
 
 def main():
     #input data file
@@ -47,15 +48,13 @@ def main():
     #find the average of all linkages
     sum = 0
     div = 0
-    vals = []
     for i in indices:
         for x in indices:
             if i != x:
                 sum += linkageTable.loc[i,x]
                 div += 1
-                vals.append(linkageTable.loc[i,x])
     averageLinkage = sum/div
-    print('average normalized linkage:',averageLinkage)
+    outputFile.write('average normalized linkage: ' + str(averageLinkage) + '\n\n')
 
 
     #convert linkage table to an adjacency matrix
@@ -68,12 +67,36 @@ def main():
                 linkageGraph.loc[i,x] = 1
             else:
                 linkageGraph.loc[i,x] = 0
-    
 
+    #find degree centrality for each window
+    degreeCentrality = {i: fsum(linkageGraph.loc[i,:])/(len(linkageGraph.loc[i,:]-1)) for i in indices}
+    
+    #create a visualization of the network
+    g = nx.Graph()
+    for i in indices:
+        for x in indices:
+            if i > x and linkageGraph.loc[i,x]:
+                g.add_edge(i,x)
+    pos = nx.spring_layout(g,iterations=1000)
+    plt.figure()
+    nodes = list(g.nodes)
+    nodeColors = ['tab:red','tab:orange','tab:green','tab:blue']
+    for i,c in enumerate(nodeColors):
+        filteredNodes = list(filter(lambda x: degreeCentrality[x] > i/len(nodeColors) and degreeCentrality[x] < (1+i)/len(nodeColors), nodes))
+        nx.draw_networkx_nodes(g,nodelist=filteredNodes,node_size=30,pos=pos,node_color=c)
+    nx.draw_networkx_edges(g,pos=pos)
+
+    plt.tight_layout()
+    plt.savefig('charts/network-centrality-1/network.png')
+    outputFile.write('![Network graph](../charts/network-centrality-1/network.png)\n\n')
+    outputFile.write('Windows are colored according to their degree centrality, following [red, orange, green, blue] from 0 to 1\n\n')
 
     return 
 
-
+def fsum(fArr):
+    sum = 0
+    for i in fArr: sum += i
+    return sum 
 
 if __name__ == "__main__":
     main()
