@@ -113,3 +113,28 @@ def runKMedoidsClustering(clusterMedoids, hist1NPs, npJaccards):
         iterations += 1
 
     return clusters, clusterMedoids
+
+
+#number of NPs in which a window is detected, divided by total numbers of NPs
+def detectionFrequency(window):
+    return sum(window) / len(window)
+
+#number of NPs with both windows A and B, divided by total number of NPs
+def coSegregation(windowA, windowB):
+    return sum(windowA & windowB) / len(windowA)
+
+#coSegregation(A,B) - detectionFrequency(A)*detectionFrequency(B)
+def linkage(windowA, windowB):
+    return coSegregation(windowA,windowB) - detectionFrequency(windowA) * detectionFrequency(windowB)
+
+#divide linkage by its theoretical maximum
+def normalizedLinkage(windowA, windowB):
+    D = linkage(windowA,windowB)
+    fA = detectionFrequency(windowA)
+    fB = detectionFrequency(windowB)
+    fAB = coSegregation(windowA,windowB)
+    if D < 0:
+        return D / min(fA * fB, (1-fA) * (1-fB))
+    elif D > 0:
+        return D / min(fB * (1-fA), fA * (1-fB))
+    return 0

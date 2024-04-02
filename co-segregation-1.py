@@ -91,18 +91,6 @@ def main():
     outputFile.write('Window 69758 is detected by no NPs, causing it to have normalized linkages of 0 for all windows\n\n')
     outputFile.write('Window 69759 is only detected by 3 NPs, giving it a high chance of having all NPs match (linkage of 1) or no NPs match (linkage of -1)\n\n')
 
-    w = hist1WindowDetectionsDf.loc[69758,:]
-    # print(detectionFrequency(w))
-    # print(coSegregation(w,w))
-    # print(linkage(w,w))
-    # print(normalizedLinkage(w,w))
-    # for i in indices:
-    #     print(normalizedLinkage(w,hist1WindowDetectionsDf.loc[i,:]))
-    
-
-    #69758 is all -0.5
-    #69759 has -1s and 1s
-
     return 
 
 #number of NPs in which a window is detected, divided by total numbers of NPs
