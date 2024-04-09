@@ -18,8 +18,8 @@ def main():
     featureDf = pd.read_csv(featureFile)
 
     #open output file
-    outputFile = open("reports/network-centrality-1-report.md", 'w')
-    outputFile.write('# Network Centrality 1 Report\n')
+    outputFile = open("reports/community-detection-1-report.md", 'w')
+    outputFile.write('# Community Detection Report\n')
 
     #columns denote an NP, rows denote a window
     windowDetectionsDf = df.iloc[:,3:]
@@ -45,6 +45,7 @@ def main():
         for x in indices:
             linkageTable.loc[i,x] = h1_mod.normalizedLinkage(hist1WindowDetectionsDf.loc[i,:],hist1WindowDetectionsDf.loc[x,:])
 
+
     #find the average of all linkages
     sum = 0
     div = 0
@@ -54,8 +55,6 @@ def main():
                 sum += linkageTable.loc[i,x]
                 div += 1
     averageLinkage = sum/div
-    outputFile.write('average normalized linkage: ' + str(averageLinkage) + '\n\n')
-
 
     #convert linkage table to an adjacency matrix
     linkageGraph = linkageTable.copy(deep=True)
@@ -68,41 +67,55 @@ def main():
             else:
                 linkageGraph.loc[i,x] = 0
 
-    #find degree centrality for each window
-    degreeCentrality = {i: fsum(linkageGraph.loc[i,:])/(len(linkageGraph.loc[i,:])-1) for i in indices}
-    revCentralities = {degreeCentrality[i]: i for i in indices}
-    sortedCentralities = {revCentralities[c]: c for c in sorted(revCentralities)}
-
-
-    for i in sortedCentralities:
-        print(i,sortedCentralities[i], (len(linkageGraph.loc[i,:])-1))
+    #find degree centrality of each window, and the hubs (top 5)
+    degreeCentrality = (linkageGraph.sum() / (len(indices)-1)).sort_values(ascending=False)
+    hubs = list(degreeCentrality.head(5).index)
     
-    #create a visualization of the network
-    g = nx.Graph()
-    for i in indices:
-        for x in indices:
-            if i > x and linkageGraph.loc[i,x]:
-                g.add_edge(i,x)
-    pos = nx.spring_layout(g,iterations=1000)
-    plt.figure()
-    nodes = list(g.nodes)
-    nodeColors = ['tab:red','tab:orange','tab:green','tab:blue']
-    for i,c in enumerate(nodeColors):
-        filteredNodes = list(filter(lambda x: degreeCentrality[x] > i/len(nodeColors) and degreeCentrality[x] < (1+i)/len(nodeColors), nodes))
-        nx.draw_networkx_nodes(g,nodelist=filteredNodes,node_size=30,pos=pos,node_color=c)
-    nx.draw_networkx_edges(g,pos=pos)
+    #report data on each community
+    for c,h in enumerate(hubs):
+        community = []
+        for i in indices:
+            if linkageGraph.loc[h,i] or i == h:
+                community.append(i)
+        hist1Count = 0
+        ladCount = 0
+        for i in community:
+            if featureDf.loc[i,'Hist1'] == 1:
+                hist1Count += 1
+            if featureDf.loc[i,'LAD'] == 1:
+                ladCount += 1
+        outputFile.write(f'### Community {c+1}\n\n')
+        outputFile.write(f'Size: {len(community)} nodes\n\n')
+        outputFile.write(f'{hist1Count} nodes contain hist1 gene\n\n')
+        outputFile.write(f'{ladCount} nodes contain a LAD\n\n')
 
-    plt.tight_layout()
-    plt.savefig('charts/network-centrality-1/network.png')
-    outputFile.write('![Network graph](../charts/network-centrality-1/network.png)\n\n')
-    outputFile.write('Windows are colored according to their degree centrality, following [red, orange, green, blue] from 0 to 1\n\n')
+        outputFile.write(f'Nodes in community:\n\n```')
+        for i in community:
+            outputFile.write(f'{i} ')
+        outputFile.write('```\n\n')
+
+        #create graph of community
+        g = nx.Graph()
+        for i in community:
+            for j in community:
+                if i > j and linkageGraph.loc[i,j]:
+                    g.add_edge(i,j)
+        pos = nx.spring_layout(g,iterations=1000)
+        plt.figure()
+        for i in community:
+            nx.draw_networkx_nodes(g,nodelist=[i],node_size=(degreeCentrality[i]*99+1),pos=pos)
+        nx.draw_networkx_edges(g,pos=pos)
+
+        plt.tight_layout()
+        savefile = f'charts/community-detection-1/community-{c+1}-graph.png'
+        plt.savefig(savefile)
+        outputFile.write(f'![Community {c+1}](../{savefile})\n\n')
+
+    
+
 
     return 
 
-def fsum(fArr):
-    sum = 0
-    for i in fArr: sum += i
-    return sum 
 
 if __name__ == "__main__":
     main()
