@@ -70,6 +70,8 @@ def main():
     #find degree centrality of each window, and the hubs (top 5)
     degreeCentrality = (linkageGraph.sum() / (len(indices)-1)).sort_values(ascending=False)
     hubs = list(degreeCentrality.head(5).index)
+
+
     
     #report data on each community
     for c,h in enumerate(hubs):
@@ -110,6 +112,20 @@ def main():
         savefile = f'charts/community-detection-1/community-{c+1}-graph.png'
         plt.savefig(savefile)
         outputFile.write(f'![Community {c+1}](../{savefile})\n\n')
+
+        communityTable = [[1 if (i in community and x in community and linkageGraph.loc[i,x]) else 0 for i in indices] for x in indices]
+        communityDf = pd.DataFrame(communityTable, index=indices, columns=indices)
+        plt.figure()
+        sns.heatmap(communityDf,cmap='bwr')
+        plt.title(f'Community {c+1}')
+        savefile = f'charts/community-detection-1/community-{c+1}-heat-map.png'
+        plt.savefig(savefile)
+        # outputFile.write(f'![Community {c+1}](../{savefile})\n\n')
+    
+
+    outputFile.write(f'## Heat maps\n\nEach heat map shows connections between nodes in a community as red\n\n')
+    for c,h in enumerate(hubs):
+        outputFile.write(f'![Community {c+1} heat map](../charts/community-detection-1/community-{c+1}-heat-map.png)\n\n')
 
     
 
