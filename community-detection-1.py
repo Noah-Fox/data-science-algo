@@ -71,8 +71,35 @@ def main():
     degreeCentrality = (linkageGraph.sum() / (len(indices)-1)).sort_values(ascending=False)
     hubs = list(degreeCentrality.head(5).index)
 
+    #create a graph showing all nodes
+    g = nx.Graph()
+    for i in indices:
+        for x in indices:
+            if i > x and linkageGraph.loc[i,x]:
+                g.add_edge(i,x)
+    pos = nx.spring_layout(g,iterations=1000)
+    plt.figure()
+    for i in indices:
+        if degreeCentrality[i] > 0:
+            s = 20
+            if i in hubs:
+                s = 100
+            commCount = 0
+            for h in hubs:
+                if linkageGraph.loc[i,h]:
+                    commCount += 1
+            colors = ['tab:red','tab:orange','tab:olive','tab:green','tab:blue','tab:purple']
+            # colors = [[0,0,255],[0,255,0],[255,0,0],[0,255,255],[255,0,255],[255,255,0]]
+            nx.draw_networkx_nodes(g,nodelist=[i],node_size=s,pos=pos,node_color=colors[commCount])
+    nx.draw_networkx_edges(g,pos=pos)
+    plt.tight_layout()
+    savefile = f'charts/community-detection-1/full-network-graph.png'
+    plt.savefig(savefile)
+    outputFile.write(f'![Full network graph](../{savefile})\n\n')
+    outputFile.write(f'This graph shows the full network on windows. The larger nodes are the hubs, with the largest degree centralities. ')
+    outputFile.write(f'The nodes are colored from red to purple, according to the number of communities they are in (0-5)\n\n')
 
-    
+
     #report data on each community
     for c,h in enumerate(hubs):
         community = []
