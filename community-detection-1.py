@@ -115,8 +115,8 @@ def main():
                 ladCount += 1
         outputFile.write(f'### Community {c+1}\n\n')
         outputFile.write(f'Size: {len(community)} nodes\n\n')
-        outputFile.write(f'{hist1Count} nodes contain hist1 gene\n\n')
-        outputFile.write(f'{ladCount} nodes contain a LAD\n\n')
+        outputFile.write(f'{hist1Count} nodes contain hist1 gene: {round(100*hist1Count/len(community),2)}%\n\n')
+        outputFile.write(f'{ladCount} nodes contain a LAD: {round(100*ladCount/len(community),2)}%\n\n')
 
         outputFile.write(f'Nodes in community:\n\n```')
         for i in community:
