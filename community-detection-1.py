@@ -85,11 +85,12 @@ def main():
             if i in hubs:
                 s = 100
             commCount = 0
+            if i in hubs:
+                commCount = 1
             for h in hubs:
                 if linkageGraph.loc[i,h]:
                     commCount += 1
             colors = ['tab:red','tab:orange','tab:olive','tab:green','tab:blue','tab:purple']
-            # colors = [[0,0,255],[0,255,0],[255,0,0],[0,255,255],[255,0,255],[255,255,0]]
             nx.draw_networkx_nodes(g,nodelist=[i],node_size=s,pos=pos,node_color=colors[commCount])
     nx.draw_networkx_edges(g,pos=pos)
     plt.tight_layout()
@@ -147,7 +148,6 @@ def main():
         plt.title(f'Community {c+1}')
         savefile = f'charts/community-detection-1/community-{c+1}-heat-map.png'
         plt.savefig(savefile)
-        # outputFile.write(f'![Community {c+1}](../{savefile})\n\n')
     
 
     outputFile.write(f'## Heat maps\n\nEach heat map shows connections between nodes in a community as red\n\n')
